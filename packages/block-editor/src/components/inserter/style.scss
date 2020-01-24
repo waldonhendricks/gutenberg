@@ -25,6 +25,29 @@ $block-inserter-search-height: 38px;
 	}
 }
 
+.block-editor-inserter__toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	border: none;
+	outline: none;
+	padding: 0;
+	transition: color 0.2s ease;
+
+	// Spot color button.
+	// @todo: This button should ideally be 32px.
+	background-color: $blue-medium-focus;
+	color: $white;
+	border-radius: $radius-block-ui;
+
+	@include reduce-motion("transition");
+
+	&:hover {
+		color: $white;
+		background-color: rgba($blue-medium-focus, 0.8);
+	}
+}
+
 .block-editor-inserter__menu {
 	height: 100%;
 	display: flex;
