@@ -136,7 +136,6 @@ html {
 .edit-post-editor-regions__footer {
 	height: auto;  // Keep the height flexible.
 	flex-shrink: 0;
-	overflow: auto;
 	border-top: $border-width solid $light-gray-500;
 	color: $dark-gray-primary;
 

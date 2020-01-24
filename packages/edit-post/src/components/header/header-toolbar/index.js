@@ -12,7 +12,6 @@ import {
 	ToolSelector,
 } from '@wordpress/block-editor';
 import {
-	TableOfContents,
 	EditorHistoryRedo,
 	EditorHistoryUndo,
 } from '@wordpress/editor';
@@ -54,7 +53,6 @@ function HeaderToolbar() {
 			<EditorHistoryUndo />
 			<EditorHistoryRedo />
 			<BlockNavigationDropdown isDisabled={ isTextModeEnabled } />
-			<TableOfContents hasOutlineItemsDisabled={ isTextModeEnabled } />
 			{ ( hasFixedToolbar || ! isLargeViewport ) && (
 				<div className="edit-post-header-toolbar__block-toolbar">
 					<BlockToolbar hideDragHandle />
