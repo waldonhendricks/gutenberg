@@ -15,8 +15,22 @@ function render_block_core_post_author() {
 	if ( ! $post ) {
 		return '';
 	}
+
+	$avatar = get_avatar(
+		$post->post_author,
+		24,
+		'',
+		'',
+		array(
+			'class' => 'wp-block-post-author__avatar',
+		)
+	);
+
 	// translators: %s: The author.
-	return '<address>' . sprintf( __( 'By %s' ), get_the_author() ) . '</address>';
+	return '<address>' .
+		$avatar .
+		get_the_author() .
+	'</address>';
 }
 
 /**

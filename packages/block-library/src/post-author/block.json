@@ -1,4 +1,9 @@
 {
 	"name": "core/post-author",
-	"category": "layout"
+	"category": "layout",
+	"attributes": {
+		"author": {
+			"type": "object"
+		}
+	}
 }

@@ -1,0 +1,13 @@
+.wp-block-post-author {
+	display: flex;
+}
+
+.block-editor__container img.wp-block-post-author__avatar {
+	margin: $grid-size-small;
+	width: 24px;
+	height: 24px;
+}
+
+.wp-block-post-author__name {
+	margin-left: $grid-size-small;
+}
