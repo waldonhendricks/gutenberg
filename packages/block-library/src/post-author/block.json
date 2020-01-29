@@ -2,8 +2,32 @@
 	"name": "core/post-author",
 	"category": "layout",
 	"attributes": {
-		"author": {
-			"type": "object"
+		"id": {
+			"type": "number"
+		},
+		"name": {
+			"type": "string"
+		},
+		"firstName": {
+			"type": "string"
+		},
+		"lasttName": {
+			"type": "string"
+		},
+		"avatarSize": {
+			"type": "string"
+		},
+		"avatarUrl": {
+			"type": "string",
+			"source": "attribute",
+			"selector": "img",
+			"attribute": "src"
+		},
+		"showAvatar": {
+			"type": "boolean"
+		},
+		"showDisplayName": {
+			"type": "boolean"
 		}
 	}
 }
