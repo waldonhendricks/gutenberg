@@ -11,7 +11,7 @@
 		"firstName": {
 			"type": "string"
 		},
-		"lasttName": {
+		"lastName": {
 			"type": "string"
 		},
 		"avatarSize": {
@@ -28,6 +28,18 @@
 		},
 		"showDisplayName": {
 			"type": "boolean"
+		},
+		"showByline": {
+			"type": "boolean"
+		},
+		"showBio": {
+			"type": "boolean"
+		},
+		"byline": {
+			"type": "string"
+		},
+		"description": {
+			"type": "string"
 		}
 	}
 }

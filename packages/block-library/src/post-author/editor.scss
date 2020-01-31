@@ -1,12 +1,26 @@
 .block-editor__container .wp-block-post-author {
 	display: flex;
+	flex-wrap: wrap;
 	line-height: 1.5;
 }
 
-.block-editor__container img.wp-block-post-author__avatar {
+.wp-block-post-author__byline {
+	width: 100%;
+}
+
+.block-editor__container .wp-block-post-author__avatar {
+	flex-grow: 1;
+}
+
+.wp-block-post-author__content {
+	flex-basis: 0;
+	flex-grow: 999;
+}
+
+.block-editor__container .wp-block-post-author__avatar img {
 	margin: $grid-size-small;
 }
 
-.wp-block-post-author__name {
-	margin-left: $grid-size-small;
+.block-editor__container .wp-block-post-author__name {
+	margin: 0;
 }
