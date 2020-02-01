@@ -5,14 +5,22 @@
 
 	&__byline {
 		width: 100%;
+		margin-top: $grid-size-large;
+		margin-bottom: $grid-size-large;
 	}
 
 	&__avatar {
 		flex-grow: 1;
+		margin-right: $grid-size-large;
 	}
 
 	&__content {
 		flex-basis: 0;
 		flex-grow: 999;
 	}
+
+	&__name {
+		font-weight: bold;
+	}
+
 }
