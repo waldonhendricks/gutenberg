@@ -5,7 +5,7 @@
  * @package WordPress
  */
 
- /**
+/**
  * Build an array with CSS classes and inline styles defining the colors
  * which will be applied to the navigation markup in the front-end.
  *
@@ -88,7 +88,8 @@ function post_author_build_css_font_sizes( $attributes ) {
 /**
  * Renders the `core/post-author` block on the server.
  *
- * @return string Returns the filtered post author for the current post wrapped inside "h6" tags.
+ * @param  array $attributes Author block attributes.
+ * @return string Returns the rendered author block.
  */
 function render_block_core_post_author( $attributes ) {
 	$post = gutenberg_get_post_from_context();
