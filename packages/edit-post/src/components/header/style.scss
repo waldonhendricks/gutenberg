@@ -66,7 +66,7 @@
 	// Header toggle buttons.
 	&.is-pressed {
 		color: $white;
-		background: $dark-gray-500;
+		background: $dark-gray-primary;
 	}
 
 	// The !important in this ruleset need to override the pile of :not() selectors used in the icon-button.
@@ -74,7 +74,7 @@
 	&.is-pressed:focus {
 		box-shadow: 0 0 0 $border-width $dark-gray-500, inset 0 0 0 $border-width $white !important;
 		color: $white !important;
-		background: $dark-gray-500 !important;
+		background: $dark-gray-primary !important;
 	}
 
 	// Make editor header bar buttons bigger to match Buttons.
