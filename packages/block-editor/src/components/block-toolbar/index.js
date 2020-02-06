@@ -7,7 +7,7 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { useSelect } from '@wordpress/data';
-import { useState, useRef, useEffect } from '@wordpress/element';
+import { useState, useRef, useEffect, useCallback } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -59,7 +59,10 @@ export default function BlockToolbar( { hideDragHandle } ) {
 	}, [] );
 
 	const nodeRef = useRef();
-	const showMovers = useShowMovers( { ref: nodeRef } );
+	const {
+		showMovers,
+		gestures: showMoversGestures,
+	} = useShowMoversGestures( { ref: nodeRef } );
 
 	if ( blockClientIds.length === 0 ) {
 		return null;
@@ -76,34 +79,43 @@ export default function BlockToolbar( { hideDragHandle } ) {
 
 	// TODO: Refactor to CSS styles
 	const forcedBlockMoverWrapperStyles = {
+		left: -1,
+		position: 'absolute',
+		top: -1,
+		userSelect: 'none',
+		zIndex: -1,
+		transform: 'translateX(-48px)',
+	};
+
+	const animatedMoverStyles = {
 		backgroundColor: 'white',
 		border: '1px solid black',
 		borderBottomLeftRadius: 2,
 		borderRight: 'none',
 		borderTopLeftRadius: 2,
-		left: -1,
-		position: 'absolute',
-		top: -1,
 		transition: 'all 60ms linear',
-		userSelect: 'none',
-		zIndex: -1,
-		// interpolated values, based on whether movers should show
-		pointerEvents: shouldShowMovers ? 'all' : 'none',
 		opacity: shouldShowMovers ? 1 : 0,
-		transform: shouldShowMovers ? 'translateX(-48px)' : 'translateX(0)',
+		transform: shouldShowMovers ? 'translateX(0px)' : 'translateX(100%)',
 	};
 
 	return (
-		<div className={ classes } ref={ nodeRef }>
-			<div style={ forcedBlockMoverWrapperStyles }>
-				<BlockMover
-					clientIds={ blockClientIds }
-					__experimentalOrientation={ moverDirection }
-					hideDragHandle={ hideDragHandle }
-				/>
+		<div className={ classes }>
+			<div
+				style={ forcedBlockMoverWrapperStyles }
+				{ ...showMoversGestures }
+			>
+				<div style={ animatedMoverStyles }>
+					<BlockMover
+						clientIds={ blockClientIds }
+						__experimentalOrientation={ moverDirection }
+						hideDragHandle={ hideDragHandle }
+					/>
+				</div>
 			</div>
 			{ ( shouldShowVisualToolbar || isMultiToolbar ) && (
-				<BlockSwitcher clientIds={ blockClientIds } />
+				<div ref={ nodeRef } { ...showMoversGestures }>
+					<BlockSwitcher clientIds={ blockClientIds } />
+				</div>
 			) }
 			{ shouldShowVisualToolbar && ! isMultiToolbar && (
 				<>
@@ -122,7 +134,8 @@ export default function BlockToolbar( { hideDragHandle } ) {
 	);
 }
 
-function useShowMovers( { ref, debounceTimeout = 300 } ) {
+// Attempt 1: Keeping this in case we decide to switch back to this interaction
+export function useShowMovers( { ref, debounceTimeout = 300 } ) {
 	const [ showMovers, setShowMovers ] = useState( false );
 	const timeoutRef = useRef();
 
@@ -140,8 +153,9 @@ function useShowMovers( { ref, debounceTimeout = 300 } ) {
 			}
 		};
 
-		const handleOnMouseMove = () => {
+		const handleOnMouseMove = ( event ) => {
 			const timeout = timeoutRef.current;
+			event.stopPropagation();
 
 			if ( timeout && clearTimeout ) {
 				clearTimeout( timeout );
@@ -183,4 +197,49 @@ function useShowMovers( { ref, debounceTimeout = 300 } ) {
 	}, [ ref, showMovers, setShowMovers, timeoutRef ] );
 
 	return showMovers;
+}
+
+function useShowMoversGestures( { ref, debounceTimeout = 300 } ) {
+	const [ showMovers, setShowMovers ] = useState( false );
+	const timeoutRef = useRef();
+	const { setTimeout, clearTimeout } = window;
+
+	const onMouseMove = useCallback( ( event ) => {
+		const node = ref.current;
+		if ( ! node ) return;
+
+		const timeout = timeoutRef.current;
+		event.stopPropagation();
+
+		if ( timeout && clearTimeout ) {
+			clearTimeout( timeout );
+		}
+		if ( ! showMovers ) {
+			setShowMovers( true );
+		}
+	}, [] );
+
+	const onMouseLeave = useCallback(
+		( event ) => {
+			const node = ref.current;
+			if ( ! node ) return;
+
+			event.stopPropagation();
+
+			if ( showMovers ) {
+				timeoutRef.current = setTimeout( () => {
+					setShowMovers( false );
+				}, debounceTimeout );
+			}
+		},
+		[ showMovers ]
+	);
+
+	return {
+		showMovers,
+		gestures: {
+			onMouseMove,
+			onMouseLeave,
+		},
+	};
 }
