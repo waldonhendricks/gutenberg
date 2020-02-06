@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { View, Text, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableWithoutFeedback, Alert } from 'react-native';
 
 /**
  * WordPress dependencies
@@ -16,6 +16,7 @@ import {
 	__experimentalGetAccessibleBlockLabel as getAccessibleBlockLabel,
 } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
+import OverflowView from '../../../../../../react-native-overflow-view/src/OverflowView';
 
 /**
  * Internal dependencies
@@ -215,46 +216,50 @@ class BlockListBlock extends Component {
 
 		return (
 			<>
-				{ showFloatingToolbar && (
-					<FloatingToolbar>
-						<Toolbar passedStyle={ styles.toolbar }>
-							<ToolbarButton
-								title={ __( 'Navigate Up' ) }
-								onClick={ () =>
-									this.props.onSelect( parentId )
-								}
-								icon={ NavigateUpSVG }
-							/>
-							<View style={ styles.pipe } />
-						</Toolbar>
-						<Breadcrumbs clientId={ clientId } />
-					</FloatingToolbar>
-				) }
-				<TouchableWithoutFeedback
-					onPress={ this.onFocus }
-					accessible={ ! isSelected }
-					accessibilityRole={ 'button' }
-				>
-					<View
-						pointerEvents={ isTouchable ? 'auto' : 'box-only' }
-						accessibilityLabel={ accessibilityLabel }
-						style={ this.applyBlockStyle() }
+			<TouchableWithoutFeedback hitSlop={{top: (isSelected?44:0)}}>
+				<View hitSlop={{top: (isSelected?44:0)}}>
+					{ showFloatingToolbar && (
+						<FloatingToolbar>
+							<Toolbar passedStyle={ styles.toolbar }>
+								<ToolbarButton
+									title={ __( 'Navigate Up' ) }
+									onClick={ () =>
+										this.props.onSelect( parentId )
+									}
+									icon={ NavigateUpSVG }
+								/>
+								<View style={ styles.pipe } />
+							</Toolbar>
+							<Breadcrumbs clientId={ clientId } />
+						</FloatingToolbar>
+					) }
+					<TouchableWithoutFeedback
+						onPress={ this.onFocus }
+						accessible={ ! isSelected }
+						accessibilityRole={ 'button' }
 					>
-						{ isValid ? (
-							this.getBlockForType()
-						) : (
-							<BlockInvalidWarning
-								blockTitle={ title }
-								icon={ icon }
-							/>
-						) }
-						<View style={ this.applyToolbarStyle() }>
-							{ isSelected && (
-								<BlockMobileToolbar clientId={ clientId } />
+						<View
+							pointerEvents={ 'auto' }
+							accessibilityLabel={ accessibilityLabel }
+							style={ this.applyBlockStyle() }
+						>
+							{ isValid ? (
+								this.getBlockForType()
+							) : (
+								<BlockInvalidWarning
+									blockTitle={ title }
+									icon={ icon }
+								/>
 							) }
+							<View style={ this.applyToolbarStyle() }>
+								{ isSelected && (
+									<BlockMobileToolbar clientId={ clientId } />
+								) }
+							</View>
 						</View>
-					</View>
-				</TouchableWithoutFeedback>
+					</TouchableWithoutFeedback>
+				</View>
+			</TouchableWithoutFeedback>
 			</>
 		);
 	}

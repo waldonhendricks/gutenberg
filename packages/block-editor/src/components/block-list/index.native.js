@@ -24,6 +24,7 @@ import BlockListBlock from './block';
 import BlockListAppender from '../block-list-appender';
 import BlockInsertionPoint from './insertion-point';
 import __experimentalBlockListFooter from '../block-list-footer';
+import OverflowView from '../../../../../../react-native-overflow-view/src/OverflowView';
 
 const innerToolbarHeight = 44;
 
@@ -32,6 +33,7 @@ export class BlockList extends Component {
 		super( ...arguments );
 
 		this.renderItem = this.renderItem.bind( this );
+		this.cellRenderer = this.cellRenderer.bind( this );
 		this.renderBlockListFooter = this.renderBlockListFooter.bind( this );
 		this.renderDefaultBlockAppender = this.renderDefaultBlockAppender.bind(
 			this
@@ -99,11 +101,15 @@ export class BlockList extends Component {
 			withFooter = true,
 			isReadOnly,
 			isRootList,
+			isBlockSelected,
+			hasSelectedInnerBlock,
+			rootClientId,
 		} = this.props;
 
 		return (
 			<View
 				style={ { flex: isRootList ? 1 : 0 } }
+				hitSlop={{top: 44}}
 				onAccessibilityEscape={ clearSelectedBlock }
 			>
 				<KeyboardAwareFlatList
@@ -112,6 +118,7 @@ export class BlockList extends Component {
 						: {} ) } // Disable clipping on Android to fix focus losing. See https://github.com/wordpress-mobile/gutenberg-mobile/pull/741#issuecomment-472746541
 					accessibilityLabel="block-list"
 					autoScroll={ this.props.autoScroll }
+					hitSlop={{top: 44}}
 					innerRef={ this.scrollViewInnerRef }
 					extraScrollHeight={ innerToolbarHeight + 10 }
 					keyboardShouldPersistTaps="always"
@@ -131,6 +138,7 @@ export class BlockList extends Component {
 					ListFooterComponent={
 						! isReadOnly && withFooter && this.renderBlockListFooter
 					}
+					CellRendererComponent={ this.cellRenderer }
 				/>
 
 				{ this.shouldShowInnerBlockAppender() && (
@@ -154,8 +162,10 @@ export class BlockList extends Component {
 		} = this.props;
 
 		return (
-			<ReadableContentView>
-				<View pointerEvents={ isReadOnly ? 'box-only' : 'auto' }>
+			<ReadableContentView hitSlop={{top: 44}}>
+				<View pointerEvents={ isReadOnly ? 'box-only' : 'auto' }
+					hitSlop={{top: 44}}
+				>
 					{ shouldShowInsertionPointBefore( clientId ) && (
 						<BlockInsertionPoint />
 					) }
@@ -168,6 +178,7 @@ export class BlockList extends Component {
 							this.onCaretVerticalPositionChange
 						}
 						isSmallScreen={ ! this.props.isFullyBordered }
+						hitSlop={{top: 44}}
 					/>
 					{ ! this.shouldShowInnerBlockAppender() &&
 						shouldShowInsertionPointAfter( clientId ) && (
@@ -193,6 +204,22 @@ export class BlockList extends Component {
 			</>
 		);
 	}
+
+	cellRenderer( {children, item: clientId } ) {
+		const {
+			isBlockSelected,
+			hasSelectedInnerBlock,
+		} = this.props;
+		const isSelected = (isBlockSelected( clientId ) || hasSelectedInnerBlock( clientId ));
+		
+		return (
+			<OverflowView 
+				hitSlop={{top: (isSelected?44:0)}}
+			>
+				{children}
+			</OverflowView>
+		);
+	}
 }
 
 export default compose( [
@@ -204,6 +231,8 @@ export default compose( [
 			getBlockInsertionPoint,
 			isBlockInsertionPointVisible,
 			getSettings,
+			isBlockSelected,
+			hasSelectedInnerBlock,
 		} = select( 'core/block-editor' );
 
 		const selectedBlockClientId = getSelectedBlockClientId();
@@ -232,7 +261,6 @@ export default compose( [
 		};
 
 		const isReadOnly = getSettings().readOnly;
-
 		return {
 			blockClientIds,
 			blockCount: getBlockCount( rootClientId ),
@@ -242,6 +270,9 @@ export default compose( [
 			selectedBlockClientId,
 			isReadOnly,
 			isRootList: rootClientId === undefined,
+			isBlockSelected,
+			hasSelectedInnerBlock,
+			rootClientId,
 		};
 	} ),
 	withDispatch( ( dispatch ) => {
