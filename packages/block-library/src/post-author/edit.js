@@ -11,6 +11,7 @@ import { useEntityProp } from '@wordpress/core-data';
 import {
 	AlignmentToolbar,
 	BlockControls,
+	FontSizePicker,
 	InspectorControls,
 	RichText,
 	__experimentalUseColors,
@@ -32,7 +33,7 @@ function PostAuthorDisplay( { props, author, authors } ) {
 
 	const { editPost } = useDispatch( 'core/editor' );
 
-	const { fontSize } = props;
+	const { fontSize, setFontSize } = props;
 	const {
 		TextColor,
 		BackgroundColor,
@@ -134,6 +135,12 @@ function PostAuthorDisplay( { props, author, authors } ) {
 						onChange={ () =>
 							props.setAttributes( { showBio: ! showBio } )
 						}
+					/>
+				</PanelBody>
+				<PanelBody title={ __( 'Text settings' ) }>
+					<FontSizePicker
+						value={ fontSize.size }
+						onChange={ setFontSize }
 					/>
 				</PanelBody>
 			</InspectorControls>
