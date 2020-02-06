@@ -129,7 +129,8 @@ function DropdownMenu( {
 				);
 			} }
 			renderContent={ ( props ) => {
-				const mergedMenuProps = mergeProps( {
+				const mergedMenuProps = mergeProps(
+					{
 						'aria-label': menuLabel || label,
 						className: classnames(
 							'components-dropdown-menu__menu',

@@ -28,7 +28,10 @@ export function ConvertToGroupButton( {
 			) }
 			{ isUngroupable && (
 				<MenuItem onClick={ onConvertFromGroup }>
-					{ _x( 'Ungroup', 'Ungrouping blocks from within a Group block back into individual blocks within the Editor ' ) }
+					{ _x(
+						'Ungroup',
+						'Ungrouping blocks from within a Group block back into individual blocks within the Editor '
+					) }
 				</MenuItem>
 			) }
 		</Fragment>

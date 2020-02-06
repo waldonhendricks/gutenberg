@@ -11,10 +11,7 @@ import {
 	BlockNavigationDropdown,
 	ToolSelector,
 } from '@wordpress/block-editor';
-import {
-	EditorHistoryRedo,
-	EditorHistoryUndo,
-} from '@wordpress/editor';
+import { EditorHistoryRedo, EditorHistoryUndo } from '@wordpress/editor';
 
 function HeaderToolbar() {
 	const { hasFixedToolbar, showInserter, isTextModeEnabled } = useSelect(
