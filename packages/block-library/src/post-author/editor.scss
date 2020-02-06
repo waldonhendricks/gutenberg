@@ -8,13 +8,9 @@
 	width: 100%;
 }
 
-.block-editor__container .wp-block-post-author__avatar {
-	flex-grow: 1;
-}
-
 .wp-block-post-author__content {
+	flex-grow: 1;
 	flex-basis: 0;
-	flex-grow: 999;
 }
 
 .block-editor__container .wp-block-post-author__avatar img {

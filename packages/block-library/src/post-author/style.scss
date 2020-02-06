@@ -10,13 +10,12 @@
 	}
 
 	&__avatar {
-		flex-grow: 1;
 		margin-right: $grid-size-large;
 	}
 
 	&__content {
+		flex-grow: 1;
 		flex-basis: 0;
-		flex-grow: 999;
 	}
 
 	&__name {
