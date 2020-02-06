@@ -8,12 +8,6 @@
 		"name": {
 			"type": "string"
 		},
-		"firstName": {
-			"type": "string"
-		},
-		"lastName": {
-			"type": "string"
-		},
 		"avatarSize": {
 			"type": "string"
 		},
@@ -24,12 +18,6 @@
 			"attribute": "src"
 		},
 		"showAvatar": {
-			"type": "boolean"
-		},
-		"showDisplayName": {
-			"type": "boolean"
-		},
-		"showByline": {
 			"type": "boolean"
 		},
 		"showBio": {

@@ -16,12 +16,7 @@ import {
 	__experimentalUseColors,
 	withFontSizes,
 } from '@wordpress/block-editor';
-import {
-	Notice,
-	PanelBody,
-	SelectControl,
-	ToggleControl,
-} from '@wordpress/components';
+import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 
@@ -64,19 +59,8 @@ function PostAuthorDisplay( { props, author, authors } ) {
 		[ fontSize.size ]
 	);
 
-	const {
-		id,
-		firstName,
-		lastName,
-		name,
-		showAvatar,
-		showDisplayName,
-		showByline,
-		showBio,
-		byline = __( 'Written by:' ),
-	} = props.attributes;
+	const { id, showAvatar, showBio, byline } = props.attributes;
 
-	const hasFirstOrLastNameSet = !! firstName || !! lastName;
 	const avatarSizes = [
 		{ value: 24, label: __( 'Small' ) },
 		{ value: 48, label: __( 'Medium' ) },
@@ -90,8 +74,6 @@ function PostAuthorDisplay( { props, author, authors } ) {
 				props.setAttributes( {
 					id: newAuthor.id,
 					name: newAuthor.name,
-					firstName: newAuthor.firstName,
-					lastName: newAuthor.lastName,
 					avatarSize: props.attributes.avatarSize,
 					avatarUrl:
 						newAuthor.avatar_urls[ props.attributes.avatarSize ],
@@ -101,14 +83,6 @@ function PostAuthorDisplay( { props, author, authors } ) {
 		);
 	};
 
-	const authorName =
-		showDisplayName && hasFirstOrLastNameSet
-			? [ firstName, lastName ].join( ' ' )
-			: name;
-	props.setAttributes( {
-		postAuthorName: authorName,
-	} );
-
 	const blockClassNames = classnames( 'wp-block-post-author', {
 		[ fontSize.class ]: fontSize.class,
 	} );
@@ -116,6 +90,7 @@ function PostAuthorDisplay( { props, author, authors } ) {
 		fontSize: fontSize.size ? fontSize.size + 'px' : undefined,
 	};
 
+	const { isSelected } = props;
 	return (
 		<>
 			<InspectorControls>
@@ -140,45 +115,25 @@ function PostAuthorDisplay( { props, author, authors } ) {
 							props.setAttributes( { showAvatar: ! showAvatar } )
 						}
 					/>
-					<ToggleControl
-						label={ __( 'Show display name' ) }
-						checked={ showDisplayName }
-						onChange={ () =>
-							props.setAttributes( {
-								showDisplayName: ! showDisplayName,
-							} )
-						}
-					/>
-					<ToggleControl
-						label={ __( 'Show byline' ) }
-						checked={ showByline }
-						onChange={ () =>
-							props.setAttributes( { showByline: ! showByline } )
-						}
-					/>
+					{ showAvatar && (
+						<SelectControl
+							label={ __( 'Avatar size' ) }
+							value={ props.attributes.avatarSize }
+							options={ avatarSizes }
+							onChange={ ( size ) => {
+								props.setAttributes( {
+									avatarSize: size,
+									avatarUrl: author.avatar_urls[ size ],
+								} );
+							} }
+						/>
+					) }
 					<ToggleControl
 						label={ __( 'Show bio' ) }
 						checked={ showBio }
 						onChange={ () =>
 							props.setAttributes( { showBio: ! showBio } )
 						}
-					/>
-					{ showDisplayName && ! hasFirstOrLastNameSet && (
-						<Notice status="warning" isDismissible={ false }>
-							{ __( 'This author does not have their name set' ) }
-						</Notice>
-					) }
-					<hr />
-					<SelectControl
-						label={ __( 'Avatar size' ) }
-						value={ props.attributes.avatarSize }
-						options={ avatarSizes }
-						onChange={ ( size ) => {
-							props.setAttributes( {
-								avatarSize: size,
-								avatarUrl: author.avatar_urls[ size ],
-							} );
-						} }
 					/>
 				</PanelBody>
 			</InspectorControls>
@@ -202,10 +157,11 @@ function PostAuthorDisplay( { props, author, authors } ) {
 						className={ blockClassNames }
 						style={ blockInlineStyles }
 					>
-						{ showByline && (
+						{ ( ! RichText.isEmpty( byline ) || isSelected ) && (
 							<RichText
 								className="wp-block-post-author__byline"
 								multiline={ false }
+								placeholder={ __( 'Write byline …' ) }
 								withoutInteractiveFormatting
 								allowedFormats={ [
 									'core/bold',
@@ -223,13 +179,13 @@ function PostAuthorDisplay( { props, author, authors } ) {
 								<img
 									width={ props.attributes.avatarSize }
 									src={ props.attributes.avatarUrl }
-									alt={ props.attributes.postAuthorName }
+									alt={ props.attributes.name }
 								/>
 							</div>
 						) }
 						<div className="wp-block-post-author__content">
 							<p className="wp-block-post-author__name">
-								{ props.attributes.postAuthorName }
+								{ props.attributes.name }
 							</p>
 							{ showBio && (
 								<p className="wp-block-post-author__bio">
@@ -275,8 +231,6 @@ function PostAuthorEdit( props ) {
 	setAttributes( {
 		id: Number( author.id ),
 		name: author.name,
-		firstName: author.first_name,
-		lastName: author.last_name,
 		description: author.description,
 		avatarSize,
 		avatarUrl: author.avatar_urls[ avatarSize ],
