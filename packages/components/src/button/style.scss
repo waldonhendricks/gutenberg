@@ -14,10 +14,9 @@
 	box-sizing: border-box;
 	padding: 6px; // Centers 24px icons.
 	overflow: hidden;
-	border-radius: 2px;
+	border-radius: $radius-block-ui;
 	color: $black;
 
-	//&:not(:disabled):not([aria-disabled="true"]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):hover, // @todo: This is bad, let's see if we can kill it now.
 	&:hover {
 		color: $theme-color;
 	}
@@ -218,6 +217,10 @@
 	}
 
 	&.has-icon {
+		// Icon buttons are square.
+		min-width: $icon-button-size;
+		justify-content: center;
+
 		.dashicon {
 			display: inline-block;
 			flex: 0 0 auto;
