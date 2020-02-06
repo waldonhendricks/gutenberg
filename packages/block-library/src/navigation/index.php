@@ -191,8 +191,8 @@ function render_block_navigation( $content, $block ) {
  * @return string Returns  an HTML list from innerBlocks.
  */
 function core_block_navigation_build_html( $attributes, $block, $colors, $font_sizes ) {
-	$html            = '';
-	$classes         = array_merge(
+	$html    = '';
+	$classes = array_merge(
 		$colors['css_classes'],
 		$font_sizes['css_classes']
 	);
@@ -205,7 +205,7 @@ function core_block_navigation_build_html( $attributes, $block, $colors, $font_s
 
 	foreach ( (array) $block['innerBlocks'] as $key => $block ) {
 		$has_submenu = count( (array) $block['innerBlocks'] ) > 0;
-		$is_active = ! empty( $block['attrs']['id'] ) && ( get_the_ID() === $block['attrs']['id'] );
+		$is_active   = ! empty( $block['attrs']['id'] ) && ( get_the_ID() === $block['attrs']['id'] );
 
 		$class_name = ! empty( $block['attrs']['className'] ) ? implode( ' ', (array) $block['attrs']['className'] ) : false;
 
