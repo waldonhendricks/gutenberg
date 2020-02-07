@@ -27,6 +27,7 @@
 		color: initial;
 	}
 
+	// Focus.
 	// See https://github.com/WordPress/gutenberg/issues/13267 for more context on these selectors.
 	&:focus:not(:disabled) {
 		box-shadow: 0 0 0 2px color($theme-color);
