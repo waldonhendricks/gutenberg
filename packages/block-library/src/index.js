@@ -70,7 +70,8 @@ import * as postContent from './post-content';
 import * as postAuthor from './post-author';
 import * as postDate from './post-date';
 import * as postExcerpt from './post-excerpt';
-
+import * as query from './query';
+import { registerQueryStore, registerDeduplicatedBlock } from './query/store';
 /**
  * Function to register an individual block.
  *
@@ -197,8 +198,14 @@ export const __experimentalRegisterExperimentalCoreBlocks =
 								postAuthor,
 								postDate,
 								postExcerpt,
+								query,
 						  ]
 						: [] ),
 				].forEach( registerBlock );
+
+				if ( __experimentalEnableFullSiteEditing ) {
+					registerQueryStore();
+					registerDeduplicatedBlock( `core/${ query.name }` );
+				}
 		  }
 		: undefined;
