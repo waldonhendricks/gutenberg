@@ -7,7 +7,7 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { useSelect } from '@wordpress/data';
-import { useState, useRef, useEffect, useCallback } from '@wordpress/element';
+import { useRef } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -17,6 +17,7 @@ import BlockSwitcher from '../block-switcher';
 import BlockControls from '../block-controls';
 import BlockFormatControls from '../block-format-controls';
 import BlockSettingsMenu from '../block-settings-menu';
+import { useShowMoversGestures } from './utils';
 
 export default function BlockToolbar( { hideDragHandle } ) {
 	const {
@@ -72,6 +73,7 @@ export default function BlockToolbar( { hideDragHandle } ) {
 	const isMultiToolbar = blockClientIds.length > 1;
 
 	const shouldShowMovers = showMovers && hasMovers;
+
 	const classes = classnames(
 		'block-editor-block-toolbar',
 		shouldShowMovers && 'is-withMovers'
@@ -87,6 +89,7 @@ export default function BlockToolbar( { hideDragHandle } ) {
 		transform: 'translateX(-48px)',
 	};
 
+	// TODO: Refactor to CSS styles
 	const animatedMoverStyles = {
 		backgroundColor: 'white',
 		border: '1px solid black',
@@ -102,10 +105,14 @@ export default function BlockToolbar( { hideDragHandle } ) {
 		<div className={ classes }>
 			<div ref={ nodeRef }>
 				<div
+					className="block-editor-block-toolbar__mover-trigger-container"
 					style={ forcedBlockMoverWrapperStyles }
 					{ ...showMoversGestures }
 				>
-					<div style={ animatedMoverStyles }>
+					<div
+						className="block-editor-block-toolbar__mover-trigger-wrapper"
+						style={ animatedMoverStyles }
+					>
 						<BlockMover
 							clientIds={ blockClientIds }
 							__experimentalOrientation={ moverDirection }
@@ -114,7 +121,10 @@ export default function BlockToolbar( { hideDragHandle } ) {
 					</div>
 				</div>
 				{ ( shouldShowVisualToolbar || isMultiToolbar ) && (
-					<div { ...showMoversGestures }>
+					<div
+						{ ...showMoversGestures }
+						className="block-editor-block-toolbar__block-switcher-wrapper"
+					>
 						<BlockSwitcher clientIds={ blockClientIds } />
 					</div>
 				) }
@@ -134,167 +144,4 @@ export default function BlockToolbar( { hideDragHandle } ) {
 			<BlockSettingsMenu clientIds={ blockClientIds } />
 		</div>
 	);
-}
-
-// Attempt 1: Keeping this in case we decide to switch back to this interaction
-export function useShowMovers( { ref, debounceTimeout = 300 } ) {
-	const [ showMovers, setShowMovers ] = useState( false );
-	const timeoutRef = useRef();
-
-	useEffect( () => {
-		const node = ref.current;
-		const { setTimeout, clearTimeout } = window;
-
-		const isFocusedWithin = () => {
-			return node.contains( document.activeElement );
-		};
-
-		const handleOnDocumentFocus = () => {
-			if ( isFocusedWithin() && ! showMovers ) {
-				setShowMovers( true );
-			}
-		};
-
-		const handleOnMouseMove = ( event ) => {
-			const timeout = timeoutRef.current;
-			event.stopPropagation();
-
-			if ( timeout && clearTimeout ) {
-				clearTimeout( timeout );
-			}
-			if ( ! showMovers ) {
-				setShowMovers( true );
-			}
-		};
-
-		const handleOnMouseLeave = () => {
-			if ( showMovers && ! isFocusedWithin() ) {
-				timeoutRef.current = setTimeout( () => {
-					setShowMovers( false );
-				}, debounceTimeout );
-			}
-		};
-
-		/**
-		 * Events are added via DOM events (vs. React synthetic events),
-		 * as the child React components swallow mouse events.
-		 */
-		if ( node ) {
-			document.addEventListener( 'focus', handleOnDocumentFocus, true );
-			node.addEventListener( 'mousemove', handleOnMouseMove );
-			node.addEventListener( 'mouseleave', handleOnMouseLeave );
-		}
-
-		return () => {
-			if ( node ) {
-				document.addEventListener(
-					'focus',
-					handleOnDocumentFocus,
-					false
-				);
-				node.removeEventListener( 'mousemove', handleOnMouseMove );
-				node.removeEventListener( 'mouseleave', handleOnMouseLeave );
-			}
-		};
-	}, [ ref, showMovers, setShowMovers, timeoutRef ] );
-
-	return showMovers;
-}
-
-function useShowMoversGestures( { ref, debounceTimeout = 300 } ) {
-	const [ showMovers, setShowMovers ] = useState( false );
-	const timeoutRef = useRef();
-	const { setTimeout, clearTimeout } = window;
-
-	const debouncedShowMovers = useCallback(
-		( event ) => {
-			if ( event ) {
-				event.stopPropagation();
-			}
-
-			const timeout = timeoutRef.current;
-
-			if ( timeout && clearTimeout ) {
-				clearTimeout( timeout );
-			}
-			if ( ! showMovers ) {
-				setShowMovers( true );
-			}
-		},
-		[ showMovers, setShowMovers, timeoutRef ]
-	);
-
-	const debouncedHideMovers = useCallback(
-		( event ) => {
-			if ( event ) {
-				event.stopPropagation();
-			}
-
-			if ( showMovers ) {
-				timeoutRef.current = setTimeout( () => {
-					setShowMovers( false );
-				}, debounceTimeout );
-			}
-		},
-		[ showMovers, setShowMovers, timeoutRef ]
-	);
-
-	const onMouseMove = useCallback( ( event ) => {
-		const node = ref.current;
-		if ( ! node ) return;
-
-		debouncedShowMovers( event );
-	}, [] );
-
-	const onMouseLeave = useCallback(
-		( event ) => {
-			const node = ref.current;
-			if ( ! node ) return;
-
-			debouncedHideMovers( event );
-		},
-		[ showMovers ]
-	);
-
-	useEffect( () => {
-		const node = ref.current;
-
-		const isFocusedWithin = () => {
-			return node.contains( document.activeElement );
-		};
-
-		const handleOnDocumentFocus = () => {
-			if ( isFocusedWithin() ) {
-				debouncedShowMovers();
-			}
-		};
-
-		const handleOnDocumentBlur = () => {
-			debouncedHideMovers();
-		};
-
-		/**
-		 * Events are added via DOM events (vs. React synthetic events),
-		 * as the child React components swallow mouse events.
-		 */
-		if ( node ) {
-			document.addEventListener( 'focus', handleOnDocumentFocus, true );
-			document.addEventListener( 'blur', handleOnDocumentBlur, true );
-		}
-
-		return () => {
-			if ( node ) {
-				document.removeEventListener( 'focus', handleOnDocumentFocus );
-				document.removeEventListener( 'blur', handleOnDocumentBlur );
-			}
-		};
-	}, [ ref, debouncedShowMovers, debouncedHideMovers ] );
-
-	return {
-		showMovers,
-		gestures: {
-			onMouseMove,
-			onMouseLeave,
-		},
-	};
 }
