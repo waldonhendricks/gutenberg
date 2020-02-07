@@ -100,23 +100,25 @@ export default function BlockToolbar( { hideDragHandle } ) {
 
 	return (
 		<div className={ classes }>
-			<div
-				style={ forcedBlockMoverWrapperStyles }
-				{ ...showMoversGestures }
-			>
-				<div style={ animatedMoverStyles }>
-					<BlockMover
-						clientIds={ blockClientIds }
-						__experimentalOrientation={ moverDirection }
-						hideDragHandle={ hideDragHandle }
-					/>
+			<div ref={ nodeRef }>
+				<div
+					style={ forcedBlockMoverWrapperStyles }
+					{ ...showMoversGestures }
+				>
+					<div style={ animatedMoverStyles }>
+						<BlockMover
+							clientIds={ blockClientIds }
+							__experimentalOrientation={ moverDirection }
+							hideDragHandle={ hideDragHandle }
+						/>
+					</div>
 				</div>
+				{ ( shouldShowVisualToolbar || isMultiToolbar ) && (
+					<div { ...showMoversGestures }>
+						<BlockSwitcher clientIds={ blockClientIds } />
+					</div>
+				) }
 			</div>
-			{ ( shouldShowVisualToolbar || isMultiToolbar ) && (
-				<div ref={ nodeRef } { ...showMoversGestures }>
-					<BlockSwitcher clientIds={ blockClientIds } />
-				</div>
-			) }
 			{ shouldShowVisualToolbar && ! isMultiToolbar && (
 				<>
 					<BlockControls.Slot
@@ -204,27 +206,29 @@ function useShowMoversGestures( { ref, debounceTimeout = 300 } ) {
 	const timeoutRef = useRef();
 	const { setTimeout, clearTimeout } = window;
 
-	const onMouseMove = useCallback( ( event ) => {
-		const node = ref.current;
-		if ( ! node ) return;
-
-		const timeout = timeoutRef.current;
-		event.stopPropagation();
-
-		if ( timeout && clearTimeout ) {
-			clearTimeout( timeout );
-		}
-		if ( ! showMovers ) {
-			setShowMovers( true );
-		}
-	}, [] );
-
-	const onMouseLeave = useCallback(
+	const debouncedShowMovers = useCallback(
 		( event ) => {
-			const node = ref.current;
-			if ( ! node ) return;
+			if ( event ) {
+				event.stopPropagation();
+			}
 
-			event.stopPropagation();
+			const timeout = timeoutRef.current;
+
+			if ( timeout && clearTimeout ) {
+				clearTimeout( timeout );
+			}
+			if ( ! showMovers ) {
+				setShowMovers( true );
+			}
+		},
+		[ showMovers, setShowMovers, timeoutRef ]
+	);
+
+	const debouncedHideMovers = useCallback(
+		( event ) => {
+			if ( event ) {
+				event.stopPropagation();
+			}
 
 			if ( showMovers ) {
 				timeoutRef.current = setTimeout( () => {
@@ -232,8 +236,59 @@ function useShowMoversGestures( { ref, debounceTimeout = 300 } ) {
 				}, debounceTimeout );
 			}
 		},
+		[ showMovers, setShowMovers, timeoutRef ]
+	);
+
+	const onMouseMove = useCallback( ( event ) => {
+		const node = ref.current;
+		if ( ! node ) return;
+
+		debouncedShowMovers( event );
+	}, [] );
+
+	const onMouseLeave = useCallback(
+		( event ) => {
+			const node = ref.current;
+			if ( ! node ) return;
+
+			debouncedHideMovers( event );
+		},
 		[ showMovers ]
 	);
+
+	useEffect( () => {
+		const node = ref.current;
+
+		const isFocusedWithin = () => {
+			return node.contains( document.activeElement );
+		};
+
+		const handleOnDocumentFocus = () => {
+			if ( isFocusedWithin() ) {
+				debouncedShowMovers();
+			}
+		};
+
+		const handleOnDocumentBlur = () => {
+			debouncedHideMovers();
+		};
+
+		/**
+		 * Events are added via DOM events (vs. React synthetic events),
+		 * as the child React components swallow mouse events.
+		 */
+		if ( node ) {
+			document.addEventListener( 'focus', handleOnDocumentFocus, true );
+			document.addEventListener( 'blur', handleOnDocumentBlur, true );
+		}
+
+		return () => {
+			if ( node ) {
+				document.removeEventListener( 'focus', handleOnDocumentFocus );
+				document.removeEventListener( 'blur', handleOnDocumentBlur );
+			}
+		};
+	}, [ ref, debouncedShowMovers, debouncedHideMovers ] );
 
 	return {
 		showMovers,
