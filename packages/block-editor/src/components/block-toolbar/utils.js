@@ -1,7 +1,15 @@
 /**
  * WordPress dependencies
  */
-import { useState, useRef, useEffect, useCallback } from '@wordpress/element';
+import {
+	useState,
+	useRef,
+	useEffect,
+	useCallback,
+	useLayoutEffect,
+} from '@wordpress/element';
+
+const { clearTimeout, setTimeout, requestAnimationFrame } = window;
 
 /**
  * Hook that creates a showMover state, as well as debounced show/hide callbacks
@@ -13,8 +21,6 @@ export function useDebouncedShowMovers( {
 } ) {
 	const [ showMovers, setShowMovers ] = useState( false );
 	const timeoutRef = useRef();
-
-	const { setTimeout, clearTimeout } = window;
 
 	const getIsHovered = () => {
 		return ref && ref.current.matches( ':hover' );
@@ -132,4 +138,68 @@ export function useShowMoversGestures( { ref, debounceTimeout = 500 } ) {
 			onMouseLeave: debouncedHideMovers,
 		},
 	};
+}
+
+const EDITOR_SELECTOR = '.edit-post-layout';
+const POPOVER_RENDER_TIMEOUT = 30;
+
+/**
+ * This is SUPER experimental. Please do not implement this directly.
+ */
+export function useSuperExperimentalToolbarPositioning( { ref } ) {
+	const transformTimeout = useRef();
+	const DATA_ATTR = 'data-transform-offset';
+
+	useLayoutEffect( () => {
+		const containerNode = ref.current;
+
+		const clearTransformTimeout = () => {
+			if ( transformTimeout.current ) {
+				clearTimeout( transformTimeout.current );
+			}
+		};
+
+		clearTransformTimeout();
+
+		const reposition = () => {
+			requestAnimationFrame( () => {
+				if ( ! containerNode ) return;
+				const editorNode = document.querySelector( EDITOR_SELECTOR );
+				const targetNode = containerNode.parentElement;
+
+				const { x: editorX } = editorNode.getBoundingClientRect();
+				const { x: nodeX } = containerNode.getBoundingClientRect();
+
+				const currentOffsetData =
+					containerNode.getAttribute( DATA_ATTR ) || 0;
+				const currentOffset = parseFloat( currentOffsetData );
+				const outerOffset = 48;
+				const buffer = 8;
+				const innerOffset = nodeX - editorX;
+				const diff = outerOffset - innerOffset + currentOffset;
+
+				const nextTranslateX = diff > 0 ? diff + buffer : 0;
+
+				targetNode.style.transform = `translateX(${ nextTranslateX }px)`;
+
+				containerNode.setAttribute( DATA_ATTR, nextTranslateX );
+			} );
+		};
+
+		transformTimeout.current = setTimeout( () => {
+			const targetNode = containerNode.parentElement;
+			targetNode.style.opacity = 0;
+
+			reposition();
+
+			targetNode.style.opacity = 1;
+		}, POPOVER_RENDER_TIMEOUT );
+
+		window.addEventListener( 'resize', reposition );
+
+		return () => {
+			clearTransformTimeout();
+			window.removeEventListener( 'resize', reposition );
+		};
+	}, [ ref, transformTimeout ] );
 }

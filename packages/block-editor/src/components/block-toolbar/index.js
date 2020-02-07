@@ -17,7 +17,10 @@ import BlockSwitcher from '../block-switcher';
 import BlockControls from '../block-controls';
 import BlockFormatControls from '../block-format-controls';
 import BlockSettingsMenu from '../block-settings-menu';
-import { useShowMoversGestures } from './utils';
+import {
+	useShowMoversGestures,
+	useSuperExperimentalToolbarPositioning,
+} from './utils';
 
 export default function BlockToolbar( { hideDragHandle } ) {
 	const {
@@ -59,11 +62,15 @@ export default function BlockToolbar( { hideDragHandle } ) {
 		};
 	}, [] );
 
+	const containerNodeRef = useRef();
 	const nodeRef = useRef();
+
 	const {
 		showMovers,
 		gestures: showMoversGestures,
 	} = useShowMoversGestures( { ref: nodeRef } );
+
+	useSuperExperimentalToolbarPositioning( { ref: containerNodeRef } );
 
 	if ( blockClientIds.length === 0 ) {
 		return null;
@@ -102,7 +109,7 @@ export default function BlockToolbar( { hideDragHandle } ) {
 	};
 
 	return (
-		<div className={ classes }>
+		<div className={ classes } ref={ containerNodeRef }>
 			<div ref={ nodeRef }>
 				<div
 					className="block-editor-block-toolbar__mover-trigger-container"
