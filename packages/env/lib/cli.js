@@ -34,11 +34,8 @@ const withSpinner = ( command ) => ( ...args ) => {
 			);
 		},
 		( error ) => {
-			spinner.fail( error.message || error.err );
-			if ( ! ( error instanceof env.ValidationError ) ) {
-				// eslint-disable-next-line no-console
-				console.error( `\n\n${ error.out || error.err }\n\n` );
-			}
+			const errorMessage = error.message || error.err || error.out;
+			spinner.fail( errorMessage );
 			process.exit( error.exitCode || 1 );
 		}
 	);
