@@ -551,7 +551,7 @@
 
 			// @todo It should position the block transform dialog as the left margin of a block. It currently
 			// positions instead, the mover control.
-			margin-left: -$grid-unit-60;
+			margin-left: -$grid-unit-60 - $border-width;
 		}
 
 		.block-editor-block-contextual-toolbar[data-align="full"],
