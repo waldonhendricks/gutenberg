@@ -146,6 +146,7 @@ const EDITOR_SELECTOR = '.editor-styles-wrapper';
  */
 export function useSuperExperimentalToolbarPositioning( { ref } ) {
 	const containerNode = document.querySelector( EDITOR_SELECTOR );
+	const translateXRef = useRef( 0 );
 
 	// MATH values
 	const moverWidth = 48;
@@ -170,6 +171,7 @@ export function useSuperExperimentalToolbarPositioning( { ref } ) {
 
 		if ( nodeLeft < 0 ) return;
 
+		const currentTranslateX = translateXRef.current;
 		let nextTranslateX;
 
 		// Computed values
@@ -181,13 +183,19 @@ export function useSuperExperimentalToolbarPositioning( { ref } ) {
 		const isOverflowRight = nodeRight > containerRight;
 
 		if ( isOverflowLeft ) {
-			nextTranslateX = containerX - totalOffsetLeft;
+			nextTranslateX = containerX - totalOffsetLeft + currentTranslateX;
+			translateXRef.current = nextTranslateX;
 		} else if ( isOverflowRight ) {
 			nextTranslateX = containerRight - nodeRight - buffer;
+			translateXRef.current = 0;
+		} else {
+			translateXRef.current = 0;
 		}
 
 		if ( nextTranslateX ) {
-			targetNode.style.transform = `translateX(${ nextTranslateX }px)`;
+			targetNode.style.transform = `translateX(${ Math.round(
+				nextTranslateX
+			) }px)`;
 		}
 
 		targetNode.style.opacity = 1;
