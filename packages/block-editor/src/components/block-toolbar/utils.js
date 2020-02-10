@@ -1,15 +1,14 @@
 /**
  * WordPress dependencies
  */
-import {
-	useState,
-	useRef,
-	useEffect,
-	useCallback,
-	useLayoutEffect,
-} from '@wordpress/element';
+import { useState, useRef, useEffect, useCallback } from '@wordpress/element';
 
-const { clearTimeout, setTimeout, requestAnimationFrame } = window;
+const {
+	cancelAnimationFrame,
+	clearTimeout,
+	setTimeout,
+	requestAnimationFrame,
+} = window;
 
 /**
  * Hook that creates a showMover state, as well as debounced show/hide callbacks
@@ -140,66 +139,95 @@ export function useShowMoversGestures( { ref, debounceTimeout = 500 } ) {
 	};
 }
 
-const EDITOR_SELECTOR = '.edit-post-layout';
-const POPOVER_RENDER_TIMEOUT = 30;
+const EDITOR_SELECTOR = '.editor-styles-wrapper';
 
 /**
  * This is SUPER experimental. Please do not implement this directly.
  */
 export function useSuperExperimentalToolbarPositioning( { ref } ) {
-	const transformTimeout = useRef();
-	const DATA_ATTR = 'data-transform-offset';
+	const containerNode = document.querySelector( EDITOR_SELECTOR );
 
-	useLayoutEffect( () => {
-		const containerNode = ref.current;
+	// MATH values
+	const moverWidth = 48;
+	const buffer = 8;
+	const offsetLeft = moverWidth + buffer;
 
-		const clearTransformTimeout = () => {
-			if ( transformTimeout.current ) {
-				clearTimeout( transformTimeout.current );
+	const updatePosition = useCallback( () => {
+		const node = ref.current;
+		if ( ! node ) return;
+
+		const targetNode = node.parentElement;
+
+		const {
+			x: containerX,
+			width: containerWidth,
+		} = containerNode.getBoundingClientRect();
+		const {
+			x: nodeX,
+			width: nodeWidth,
+			left: nodeLeft,
+		} = targetNode.getBoundingClientRect();
+
+		if ( nodeLeft < 0 ) return;
+
+		let nextTranslateX;
+
+		// Computed values
+		const containerRight = containerWidth + containerX;
+		const nodeRight = nodeX + nodeWidth;
+		const totalOffsetLeft = nodeX - offsetLeft;
+
+		const isOverflowLeft = totalOffsetLeft < containerX;
+		const isOverflowRight = nodeRight > containerRight;
+
+		if ( isOverflowLeft ) {
+			nextTranslateX = containerX - totalOffsetLeft;
+		} else if ( isOverflowRight ) {
+			nextTranslateX = containerRight - nodeRight - buffer;
+		}
+
+		if ( nextTranslateX ) {
+			targetNode.style.transform = `translateX(${ nextTranslateX }px)`;
+		}
+
+		targetNode.style.opacity = 1;
+	}, [] );
+
+	useHideOnInitialRender( { ref } );
+	useRequestAnimationFrameLoop( updatePosition );
+}
+
+export function useHideOnInitialRender( { ref } ) {
+	useEffect( () => {
+		const node = ref.current;
+		if ( ! node ) return;
+
+		const targetNode = node.parentElement;
+		targetNode.style.opacity = 0;
+	}, [ ref ] );
+}
+
+export function useRequestAnimationFrameLoop( callback ) {
+	const rafLoopRef = useRef();
+
+	const rafCallback = ( ...args ) => {
+		if ( callback ) {
+			callback( ...args );
+		}
+		rafLoopRef.current = requestAnimationFrame( rafCallback );
+	};
+
+	useEffect( () => {
+		const cancelAnimationLoop = () => {
+			if ( rafLoopRef.current ) {
+				cancelAnimationFrame( rafLoopRef.current );
 			}
 		};
 
-		clearTransformTimeout();
-
-		const reposition = () => {
-			requestAnimationFrame( () => {
-				if ( ! containerNode ) return;
-				const editorNode = document.querySelector( EDITOR_SELECTOR );
-				const targetNode = containerNode.parentElement;
-
-				const { x: editorX } = editorNode.getBoundingClientRect();
-				const { x: nodeX } = containerNode.getBoundingClientRect();
-
-				const currentOffsetData =
-					containerNode.getAttribute( DATA_ATTR ) || 0;
-				const currentOffset = parseFloat( currentOffsetData );
-				const outerOffset = 48;
-				const buffer = 8;
-				const innerOffset = nodeX - editorX;
-				const diff = outerOffset - innerOffset + currentOffset;
-
-				const nextTranslateX = diff > 0 ? diff + buffer : 0;
-
-				targetNode.style.transform = `translateX(${ nextTranslateX }px)`;
-
-				containerNode.setAttribute( DATA_ATTR, nextTranslateX );
-			} );
-		};
-
-		transformTimeout.current = setTimeout( () => {
-			const targetNode = containerNode.parentElement;
-			targetNode.style.opacity = 0;
-
-			reposition();
-
-			targetNode.style.opacity = 1;
-		}, POPOVER_RENDER_TIMEOUT );
-
-		window.addEventListener( 'resize', reposition );
+		rafLoopRef.current = requestAnimationFrame( rafCallback );
 
 		return () => {
-			clearTransformTimeout();
-			window.removeEventListener( 'resize', reposition );
+			cancelAnimationLoop();
 		};
-	}, [ ref, transformTimeout ] );
+	}, [ rafLoopRef ] );
 }
