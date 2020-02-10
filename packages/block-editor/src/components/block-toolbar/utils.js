@@ -159,15 +159,12 @@ export function useSuperExperimentalToolbarPositioning( { ref } ) {
 
 		const targetNode = node.parentElement;
 
-		const {
-			x: containerX,
-			width: containerWidth,
-		} = containerNode.getBoundingClientRect();
-		const {
-			x: nodeX,
-			width: nodeWidth,
-			left: nodeLeft,
-		} = targetNode.getBoundingClientRect();
+		const { x: containerX, right: containerRight } = getCoords(
+			containerNode
+		);
+		const { x: nodeX, left: nodeLeft, right: nodeRight } = getCoords(
+			targetNode
+		);
 
 		if ( nodeLeft < 0 ) return;
 
@@ -175,27 +172,27 @@ export function useSuperExperimentalToolbarPositioning( { ref } ) {
 		let nextTranslateX;
 
 		// Computed values
-		const containerRight = containerWidth + containerX;
-		const nodeRight = nodeX + nodeWidth;
 		const totalOffsetLeft = nodeX - offsetLeft;
+		const totalOffsetRight = nodeRight + buffer;
 
 		const isOverflowLeft = totalOffsetLeft < containerX;
-		const isOverflowRight = nodeRight > containerRight;
+		const isOverflowRight = totalOffsetRight > containerRight;
 
 		if ( isOverflowLeft ) {
 			nextTranslateX = containerX - totalOffsetLeft + currentTranslateX;
 			translateXRef.current = nextTranslateX;
 		} else if ( isOverflowRight ) {
-			nextTranslateX = containerRight - nodeRight - buffer;
-			translateXRef.current = 0;
+			nextTranslateX =
+				containerRight - totalOffsetRight + currentTranslateX;
+			translateXRef.current = nextTranslateX;
 		} else {
+			// TODO: Improve reset rendering
 			translateXRef.current = 0;
 		}
 
 		if ( nextTranslateX ) {
-			targetNode.style.transform = `translateX(${ Math.round(
-				nextTranslateX
-			) }px)`;
+			const translateX = Math.round( nextTranslateX );
+			targetNode.style.transform = `translateX(${ translateX }}px)`;
 		}
 
 		targetNode.style.opacity = 1;
@@ -205,7 +202,7 @@ export function useSuperExperimentalToolbarPositioning( { ref } ) {
 	useRequestAnimationFrameLoop( updatePosition );
 }
 
-export function useHideOnInitialRender( { ref } ) {
+function useHideOnInitialRender( { ref } ) {
 	useEffect( () => {
 		const node = ref.current;
 		if ( ! node ) return;
@@ -215,7 +212,7 @@ export function useHideOnInitialRender( { ref } ) {
 	}, [ ref ] );
 }
 
-export function useRequestAnimationFrameLoop( callback ) {
+function useRequestAnimationFrameLoop( callback ) {
 	const rafLoopRef = useRef();
 
 	const rafCallback = ( ...args ) => {
@@ -238,4 +235,15 @@ export function useRequestAnimationFrameLoop( callback ) {
 			cancelAnimationLoop();
 		};
 	}, [ rafLoopRef ] );
+}
+
+function getCoords( { node } ) {
+	const { x, left, width } = node.getBoundingClientRect();
+
+	return {
+		x,
+		left,
+		width,
+		right: x + width,
+	};
 }
